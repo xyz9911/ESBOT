@@ -1,54 +1,41 @@
-//index.js
-//获取应用实例
-const app = getApp()
-
+const plugin = requirePlugin("WechatSI")
+const manager = plugin.getRecordRecognitionManager()
 Page({
   data: {
-    motto: 'Hello 111World',
-    userInfo: {},
-    hasUserInfo: false,
-    canIUse: wx.canIUse('button.open-type.getUserInfo')
+    currentText: '',
   },
-  //事件处理函数
-  bindViewTap: function() {
-    wx.navigateTo({
-      url: '../logs/logs'
+  streamRecord: function() {
+    manager.start({
+      lang: 'zh_CN',
     })
   },
-  onLoad: function () {
-    if (app.globalData.userInfo) {
+  streamRecordEnd: function() {
+    manager.stop()
+  },
+  initRecord: function() {
+    //有新的识别内容返回，则会调用此事件
+    manager.onRecognize = (res) => {
+      let text = res.result
       this.setData({
-        userInfo: app.globalData.userInfo,
-        hasUserInfo: true
-      })
-    } else if (this.data.canIUse){
-      // 由于 getUserInfo 是网络请求，可能会在 Page.onLoad 之后才返回
-      // 所以此处加入 callback 以防止这种情况
-      app.userInfoReadyCallback = res => {
-        this.setData({
-          userInfo: res.userInfo,
-          hasUserInfo: true
-        })
-      }
-    } else {
-      // 在没有 open-type=getUserInfo 版本的兼容处理
-      wx.getUserInfo({
-        success: res => {
-          app.globalData.userInfo = res.userInfo
-          this.setData({
-            userInfo: res.userInfo,
-            hasUserInfo: true
-          })
-        }
+        currentText: text,
       })
     }
+    // 识别结束事件
+    manager.onStop = (res) => {
+      let text = res.result
+      if(text == '') {
+        // 用户没有说话，可以做一下提示处理...
+        return
+      }
+      this.setData({
+        currentText: text,
+      })
+      // 得到完整识别内容就可以去翻译了
+      this.translateTextAction()
+    }
   },
-  getUserInfo: function(e) {
-    console.log(e)
-    app.globalData.userInfo = e.detail.userInfo
-    this.setData({
-      userInfo: e.detail.userInfo,
-      hasUserInfo: true
-    })
+  translateTextAction: function() {},
+  onLoad: function() {
+    this.initRecord()
   }
 })
