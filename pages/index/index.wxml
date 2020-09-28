@@ -1,2 +1,15 @@
-<button  catchtouchstart="streamRecord" catchtouchend="streamRecordEnd">按住说话</button>
-<view>语音识别内容：{{currentText}}</view>
+<scroll-view scroll-y scroll-top="{{scrollTop}}" class='list'>
+  <view class='msg' wx:for="{{msgList}}">
+    <block>
+      <view class='text'>
+        <view class='nickname'>medicalbot</view>
+        <view class='content'>{{item}}</view>
+      </view>
+    </block>
+  </view>
+</scroll-view>
+<view class="input-box">
+  <text catchtouchstart="streamRecord" catchtouchend="streamRecordEnd">语音</text>
+  <input value="{{user_query}}" bindinput="inputChange"></input>
+  <text bindtap='sendMsg'>发送</text>
+</view>
