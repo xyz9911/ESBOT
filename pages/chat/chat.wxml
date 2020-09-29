@@ -42,8 +42,10 @@
 </view>
 <!--发送信息-->
 <view class="mycomment comment_bottom">
-  <textarea class="comment_input" bindinput='replyInputChange' value='{{reply_content}}' cursor-spacing="40rpx" />
-  <image class="commit_btn" src="/images/submit.jpg" bindtap='submitRely' />
+  <!-- <button class="commit_btn" catchtouchstart="streamRecord" catchtouchend="streamRecordEnd">按住说话</button>
+  <textarea class="comment_input" bindinput='replyInputChange' value='{{reply_content}}' cursor-spacing="40rpx" /> -->
+  <input class="comment_input" confirm-type="send" bindconfirm="submitReply" bindinput="replyInputChange" value='{{reply_content}}' cursor-spacing="40rpx"/>
+  <image class="commit_btn" src="/images/microphone.png" catchtouchstart="streamRecord" catchtouchend="streamRecordEnd" />
 </view>
 
 <view class="mask" catchtouchmove="preventTouchMove" bindtap="cancelReplying" wx:if="{{isReplying}}" />

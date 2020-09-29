@@ -1,5 +1,7 @@
 const app = getApp()
 const moment = require('moment')
+const plugin = requirePlugin("WechatSI")
+const manager = plugin.getRecordRecognitionManager()
 // const API = require('api.js')
 
 Page({
@@ -15,6 +17,7 @@ Page({
     isLoading: false,
     // 评论和回复内容
     reply_content: "",
+    voice_content: "",
     top_value: 100,
     // 最大行数
     max_length: 0,
@@ -25,7 +28,10 @@ Page({
     if(!this.data.isLoading){
       this.setData({isLoading: true})
     }
-    let timestamp=new Date().getTime()
+    let seconds=new Date().getSeconds();
+    let minutes=new Date().getMinutes();
+    let hours=new Date().getHours();
+    let timestamp =hours+':'+minutes+':'+seconds
     const slot = await this.requestAPI('getSlot','post',query)
     if(!slot){
       this.showToast("获取信息失败", "/images/icons/error.png")
@@ -101,6 +107,7 @@ Page({
   //  * 生命周期函数--监听页面加载
   //  */
   onLoad: async function() {
+    this.initRecord()
     // moment.locale('en', {
     //   longDateFormat: {
     //     l: "MM-DD HH:mm",
@@ -204,7 +211,7 @@ Page({
     }
   },
   // 提交回复
-  submitRely: async function (e) {
+  submitReply: async function (e) {
     // 消息为空
     if (!/[^\s]+/.test(this.data.reply_content)) {
       this.setData({
@@ -232,9 +239,6 @@ Page({
       reply_content: e.detail.value
     })
   },
-  submitVoice: function(e) {
-    
-  }
   // autoLoadMessage: async function(){
   //   var res = await server.request('GET', 'messages/' + this.data.session_id, {
   //     page: 1,
@@ -310,6 +314,37 @@ Page({
         }
       });
     });
-  }
+  },
+  streamRecord: function() {
+    manager.start({
+      lang: 'zh_CN',
+    })
+  },
+  streamRecordEnd: function() {
+    manager.stop()
+  },
+  initRecord: function() {
+    //有新的识别内容返回，则会调用此事件
+    manager.onRecognize = (res) => {
+      let text = res.result
+      this.setData({
+        currentText: text,
+      })
+    }
+    // 识别结束事件
+    manager.onStop = (res) => {
+      let text = res.result
+      if(text == '') {
+        // 用户没有说话，可以做一下提示处理...
+        return
+      }
+      this.loadMessage({
+        query:text
+      })
+      // 得到完整识别内容就可以去翻译了
+      // this.translateTextAction()
+    }
+  },
+  // translateTextAction: function() {},
 })
 

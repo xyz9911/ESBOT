@@ -1,5 +1,6 @@
 const plugin = requirePlugin("WechatSI")
 const manager = plugin.getRecordRecognitionManager()
+
 Page({
   data: {
     currentText: '',
