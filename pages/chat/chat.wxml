@@ -1,0 +1,48 @@
+<view class="messageDetail">
+  <!-- 相关物品详情 -->
+  <view class="objectDetail"  bindtap='onclickTask'>
+    <view style="display:flex; margin-bottom:20rpx;">
+      <image mode="aspectFill" src="https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1601271690456&di=a67c71d7ee3a74bc4e5322f1693600d0&imgtype=0&src=http%3A%2F%2Fa2.att.hudong.com%2F86%2F10%2F01300000184180121920108394217.jpg" style="width: 120rpx; height: 120rpx;" />
+      <view class="title_content">
+        <text style="font-size:36rpx; text-align: left; margin-top :10rpx;">蛤</text>
+        <text class="subtext" style="margin-top: 10rpx; text-align: left;">蛤</text>
+      </view>
+    </view>
+  </view>
+  <!-- 消息列表 -->
+  <scroll-view bindscrolltoupper="onMsgRefresh" id="dialog_list" scroll-y="{{true}}" scroll-with-animation='{{true}}' scroll-top='{{top_value}}'>
+    <!--单独一个对话-->
+    <view class="loading_view" wx:if="{{isLoading}}">
+      <image class="loading" src="/images/icons/loading.png"></image>
+      <text class="subtext">正在载入更多...</text>
+    </view>
+    <text class="subtext" style="margin-top: 40rpx; margin-bottom: 60rpx;" wx:if="{{noMore}}">没有更多了~</text>
+    <view class="singleDialog" wx:for="{{testMessageDetail.data}}" wx:key="item.content">
+      <!--显示时间-->
+      <text class="showTime" wx:if="{{item.showTime}}">{{item.string_time}}</text>
+      <view>
+        <view wx:if="{{!item.self}}" class="left-box">
+          <image class="ava" src="{{item.target_user.avatar}}" />
+          <view class="details">
+            <text class="username" style="text-align:left;">{{item.target_user.nickname}}</text>
+            <text class="content" style="background-color:#ffffff;color:#252525;max-width:70%;">{{item.content}}</text>
+          </view>
+        </view>
+        <view wx:if="{{item.self}}" class="right-box">
+          <view class="details" style="align-items:flex-end;">
+            <text class="username" style="text-align:right;">{{item.target_user.nickname}}</text>
+            <text class="content" style="background-color:#def1fc;color:#252525;">{{item.content}}</text>
+          </view>
+          <image class="ava" src="{{item.target_user.avatar}}" />
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>
+<!--发送信息-->
+<view class="mycomment comment_bottom">
+  <textarea class="comment_input" bindinput='replyInputChange' value='{{reply_content}}' cursor-spacing="40rpx" />
+  <image class="commit_btn" src="https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1601273414458&di=a47935db5931b4cab8d6477ebc2b8596&imgtype=0&src=http%3A%2F%2Fa2.att.hudong.com%2F36%2F48%2F19300001357258133412489354717.jpg" bindtap='submitRely' />
+</view>
+
+<view class="mask" catchtouchmove="preventTouchMove" bindtap="cancelReplying" wx:if="{{isReplying}}" />
