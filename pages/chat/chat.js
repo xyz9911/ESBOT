@@ -83,7 +83,7 @@ Page({
         guess+=",我认为你想说的有关:"+slot.slot
       }
       if(intent.to_user&&intent.to_user!=="意图未知"){
-        guess+=",我认为你的想法有关:"+intent.to_user
+        guess+=",我认为你的意图有关:"+intent.to_user
       }
       var botTmp={self: 0,
         showTime: 0,

@@ -177,6 +177,17 @@
 }
 
 .commit_btn {
+  width: 50rpx;
+  background-color: burlywood;
+  color: white;
+  border-radius: 98rpx;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+.commit_img {
   height: 48rpx;
   width: 48rpx;
 }
