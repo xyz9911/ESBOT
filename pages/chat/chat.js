@@ -8,34 +8,34 @@ Page({
    * 页面的初始数据
    */
   data: {
+    userMessageTemplate: {
+      self: 1,
+      showTime: 1,
+      string_time: '',
+      target_user: {
+        username: 'user',
+        avatar: '../../images/user.png'
+      },
+      content: ''
+    },
+    botMessageTemplate: {
+      self: 0,
+      showTime: 0,
+      string_time: '',
+      target_user: {
+        username: 'bot',
+        avatar: '../../images/bot.jpg'
+      },
+      content: ''
+    },
     testMessageDetail: {
       data: [
-        {
-          self: 1,
-          showTime: 1,
-          string_time: '2020-9-24',
-          target_user: {
-            username: 'sdadsd',
-            avatar: 'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1601271690456&di=a67c71d7ee3a74bc4e5322f1693600d0&imgtype=0&src=http%3A%2F%2Fa2.att.hudong.com%2F86%2F10%2F01300000184180121920108394217.jpg'
-          },
-          content: '蛤'
-        },
-        {
-          self: 0,
-          showTime: 1,
-          string_time: '2020-9-24',
-          target_user: {
-            username: 'sdadsd',
-            avatar: 'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1601271690456&di=a67c71d7ee3a74bc4e5322f1693600d0&imgtype=0&src=http%3A%2F%2Fa2.att.hudong.com%2F86%2F10%2F01300000184180121920108394217.jpg'
-          },
-          content: '蛤'
-        }
       ]
     },
     isLoading: false,
     noMore: false,
     // 评论和回复内容
-    reply_content: "sdfsdfsdfsd",
+    reply_content: "",
     top_value: 100,
     // 最大行数
     max_length: 0,
@@ -43,7 +43,6 @@ Page({
 
   // isMore true 用于上拉刷新
   loadMessage: async function(query) {
-
     // 用于时间显示
     moment.locale('zh-cn', {
       longDateFormat: {
@@ -54,59 +53,51 @@ Page({
     if(!this.data.isLoading){
       this.setData({isLoading: true})
     }
-    var res = {}
-    res = getSlot()
-    if (res.statusCode == 200) {
-      res.data = res.data.data
+    let timestamp=new Date().getTime()
+    console.log(timestamp)
+    const slot = await this.requestAPI('getSlot','post',query)
+    this.data.userMessageTemplate.content=query.query
+    this.data.userMessageTemplate.string_time=timestamp
+    this.data.testMessageDetail.data.push(this.data.userMessageTemplate)
+    const intent=await this.requestAPI('getIntent','post',{query:query.query,slot:slot.slot})
+    const answer=await this.requestAPI('getAnswer','post',{query:query.query,intent:intent.to_user})
+    if (answer.to_user) {
       this.setData({
         isLoading: false
       })
-      for (let i in res.data.messages) {
-        if (res.data.messages[i].user_id === res.data.target_user.id) {
-          res.data.messages[i].target_user = res.data.target_user
-          res.data.messages[i].self = false
-        } else {
-          res.data.messages[i].target_user = {
-            nickname: app.globalData.userInfo.info.nickname,
-            avatar: app.globalData.userInfo.info.avatar
-          }
-          res.data.messages[i].self = true
-        }
-      }
+      this.data.botMessageTemplate.content=answer.to_user[0]
         // 整点判断
-        var arr = res.data.messages.reverse()
-          // 整点判断
-          for (var i = 0; i < arr.length - 1; i = i + 1) {
-            if ((arr[i + 1].time - arr[i].time) > 60 || i === 0) {
-              arr[i].string_time = moment(arr[i].time * 1000).format('L');
-              arr[i].showTime = true;
-            }
-          }
+      // var arr = res.data.messages.reverse()
+      //     // 整点判断
+      // for (var i = 0; i < arr.length - 1; i = i + 1) {
+      //   if ((arr[i + 1].time - arr[i].time) > 60 || i === 0) {
+      //     arr[i].string_time = moment(arr[i].time * 1000).format('L');
+      //     arr[i].showTime = true;
+      //   }
+      // }
         // 获取每行最大高度
-        for(let t of arr){
-          this.getMaxLength(t.content)
-        }
-        this.setData({
-          sessionData: res.data,
-          testMessageDetail: {
-            data: arr
-          },
-          top_value: this.data.max_length * arr.length,
-        });
-        this.autoLoadMessage()
+      this.getMaxLength(this.data.botMessageTemplate.content)
+      this.setData({
+        top_value: this.data.max_length*2,
+      });
+      this.data.testMessageDetail.data.push(this.data.botMessageTemplate)
+      this.setData({
+        testMessageDetail: this.data.testMessageDetail,
+      });
+      console.log(this.data.testMessageDetail)
+      return true
+      // this.autoLoadMessage()
       }
     else {
       this.showToast("获取信息失败", "/images/icons/error.png")
-      return {
-        data: []
-      }
+      return false
     }
   },
 
   // /**
   //  * 生命周期函数--监听页面加载
   //  */
-  onLoad: async function(options) {
+  onLoad: async function() {
     moment.locale('en', {
       longDateFormat: {
         l: "MM-DD HH:mm",
@@ -114,12 +105,12 @@ Page({
       }
     });
     // 判断从哪里穿进来参数
-    param:{
-      query:'你好，请问高血压的人能吃茄子和其他甜品么'
-    }
-    this.test()
-    var res=request('getSlot','post',param)
-    console.log(res)
+    // var param={
+    //   query:'你好，请问高血压的人能吃茄子和其他甜品么'
+    // }
+    // // this.test()
+    // const res=await this.requestAPI('getSlot','post',param)
+    // console.log(res)
     // const res = await this.loadMessage()
   },
 
@@ -171,12 +162,6 @@ Page({
 
   },
 
-  /**
-   * 用户点击右上角分享
-   */
-  onShareAppMessage: function() {
-
-  },
   showToast: function(str, src) {
     if (src == "") {
       wx.showToast({
@@ -204,13 +189,13 @@ Page({
   },
   getMaxLength: function(text){
     // 利用回车数量以及字数判断高度
-    enter_count = 0
+    var enter_count = 0
     for (let t of text) {
       if (t === '\n') {
         enter_count++;
       }
     }
-    max = (enter_count + text.length / 13) * 72
+    var max = (enter_count + text.length / 13) * 72
     if (max > this.data.max_length){
       this.data.max_length = max
     }
@@ -226,14 +211,14 @@ Page({
       return;
     }
     // TODO: 在线更新该回复
-    const res = getSlot({
+    const res = this.loadMessage({
       query: this.data.reply_content
     })
-    if(res.statusCode != 200){
+    if(!res){
       this.showToast("发送失败", "/images/icons/error.png")
       return
     }
-    await this.loadMessage(this.data.session_id, this.data.status, false)
+    // await this.loadMessage(this.data.session_id, this.data.status, false)
     this.setData({
       reply_content: ""
     })
@@ -244,76 +229,60 @@ Page({
       reply_content: e.detail.value
     })
   },
-  autoLoadMessage: async function(){
-    var res = await server.request('GET', 'messages/' + this.data.session_id, {
-      page: 1,
-      size: 1
-    })
-    if(res.data.length === 0) {}
-    else{
+  // autoLoadMessage: async function(){
+  //   var res = await server.request('GET', 'messages/' + this.data.session_id, {
+  //     page: 1,
+  //     size: 1
+  //   })
+  //   if(res.data.length === 0) {}
+  //   else{
       
-      var last = this.data.testMessageDetail.data[this.data.testMessageDetail.data.length - 1]
-      var getLast = res.data.data.messages[0]
-      if (getLast.content === last.content && getLast.time === last.time){
+  //     var last = this.data.testMessageDetail.data[this.data.testMessageDetail.data.length - 1]
+  //     var getLast = res.data.data.messages[0]
+  //     if (getLast.content === last.content && getLast.time === last.time){
 
-      }else{
-        if (getLast.user_id === res.data.data.target_user.id) {
-          getLast.target_user = res.data.data.target_user
-          getLast.self = false
-        } else {
-          getLast.target_user = {
-            nickname: app.globalData.userInfo.info.nickname,
-            avatar: app.globalData.userInfo.info.avatar
-          }
-          getLast.self = true
-        }
-        moment.locale('en', {
-          longDateFormat: {
-            l: "MM-DD HH:mm",
-            L: "MM-DD HH:mm:ss"
-          }
-        })
-        console.log(getLast.content.length)
-        // 利用回车数量以及字数判断高度
-        this.getMaxLength(getLast.content)
-        getLast.string_time = moment(getLast.time * 1000).format('L')
-        getLast.showTime = false
-        this.data.testMessageDetail.data.push(getLast)
-        this.setData({
-          testMessageDetail:{
-            data: this.data.testMessageDetail.data
-          }
-        })
-        this.setData({
-          // 之前的最长长度 + 最后一条消息的长度
-          top_value: this.data.max_length * this.data.testMessageDetail.data.length,
-        })
-      }
-      // if (getLast.content === (this.data.testMessageDetail.data.reserve()[0]).content){
+  //     }else{
+  //       if (getLast.user_id === res.data.data.target_user.id) {
+  //         getLast.target_user = res.data.data.target_user
+  //         getLast.self = false
+  //       } else {
+  //         getLast.target_user = {
+  //           nickname: app.globalData.userInfo.info.nickname,
+  //           avatar: app.globalData.userInfo.info.avatar
+  //         }
+  //         getLast.self = true
+  //       }
+  //       moment.locale('en', {
+  //         longDateFormat: {
+  //           l: "MM-DD HH:mm",
+  //           L: "MM-DD HH:mm:ss"
+  //         }
+  //       })
+  //       console.log(getLast.content.length)
+  //       // 利用回车数量以及字数判断高度
+  //       this.getMaxLength(getLast.content)
+  //       getLast.string_time = moment(getLast.time * 1000).format('L')
+  //       getLast.showTime = false
+  //       this.data.testMessageDetail.data.push(getLast)
+  //       this.setData({
+  //         testMessageDetail:{
+  //           data: this.data.testMessageDetail.data
+  //         }
+  //       })
+  //       this.setData({
+  //         // 之前的最长长度 + 最后一条消息的长度
+  //         top_value: this.data.max_length * this.data.testMessageDetail.data.length,
+  //       })
+  //     }
+  //     // if (getLast.content === (this.data.testMessageDetail.data.reserve()[0]).content){
 
-      // }else{
-      //   // this.data.testMessageDetail.data.push(res.data.data.)
-      // }
-    }
-    setTimeout(this.autoLoadMessage, 5000)
-  },
-  test: function(){
-    wx.request({
-      url: 'http://58.59.92.190:5000/getSlot',  //如果不设置method 则默认get请求地址
-　　　 method: 'post',
-      data: {
-        query:'你好，请问高血压的人能吃茄子和其他甜品么'
-　　　　　　　　},
-      header: {
-        'content-type': 'application/json' // 默认值
-      },
-  
-      success: function(res) {
-        console.log(res.data)  //res.data  为接口返回值
-      },
-    })
-  },
-  request : function(url, method, data) {
+  //     // }else{
+  //     //   // this.data.testMessageDetail.data.push(res.data.data.)
+  //     // }
+  //   }
+  //   setTimeout(this.autoLoadMessage, 5000)
+  // },
+  requestAPI: function(url, method, data) {
     var _url = 'http://58.59.92.190:5000/' + url;
     return new Promise(function (resolve, reject) {
       wx.request({
@@ -324,6 +293,7 @@ Page({
           'Content-Type': 'application/json'
         },
         success: function success(request) {
+          console.log(request.data)
           resolve(request.data);
         },
         fail: function fail(error) {
@@ -334,16 +304,6 @@ Page({
         }
       });
     });
-  },
-  
-  getSlot: function getSlot(data){
-    return request('getSlot','post',data);
-  },
-  
-  getIntent: function getIntent(data){
-    var slot=getSlot(data);
-    var query={query:data.query,slot:slot.data.slot};
-    return request('getIntent','post',data);
   }
 })
 
