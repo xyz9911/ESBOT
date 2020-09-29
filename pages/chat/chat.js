@@ -8,32 +8,11 @@ Page({
    * 页面的初始数据
    */
   data: {
-    userMessageTemplate: {
-      self: 1,
-      showTime: 1,
-      string_time: '',
-      target_user: {
-        username: 'user',
-        avatar: '../../images/user.png'
-      },
-      content: ''
-    },
-    botMessageTemplate: {
-      self: 0,
-      showTime: 0,
-      string_time: '',
-      target_user: {
-        username: 'bot',
-        avatar: '../../images/bot.jpg'
-      },
-      content: ''
-    },
     testMessageDetail: {
       data: [
       ]
     },
     isLoading: false,
-    noMore: false,
     // 评论和回复内容
     reply_content: "",
     top_value: 100,
@@ -43,54 +22,78 @@ Page({
 
   // isMore true 用于上拉刷新
   loadMessage: async function(query) {
-    // 用于时间显示
-    moment.locale('zh-cn', {
-      longDateFormat: {
-        l: "MM-DD",
-        L: "MM-DD HH:mm"
-      }
-    })
     if(!this.data.isLoading){
       this.setData({isLoading: true})
     }
     let timestamp=new Date().getTime()
-    console.log(timestamp)
     const slot = await this.requestAPI('getSlot','post',query)
-    this.data.userMessageTemplate.content=query.query
-    this.data.userMessageTemplate.string_time=timestamp
-    this.data.testMessageDetail.data.push(this.data.userMessageTemplate)
+    if(!slot){
+      this.showToast("获取信息失败", "/images/icons/error.png")
+      return false
+    }
+    var userTmp={
+      self: 1,
+      showTime: 1,
+      string_time: timestamp,
+      target_user: {
+        username: 'user',
+        avatar: '../../images/user.png'
+      },
+      content: query.query
+    }
+    this.data.testMessageDetail.data.push(userTmp)
     const intent=await this.requestAPI('getIntent','post',{query:query.query,slot:slot.slot})
     const answer=await this.requestAPI('getAnswer','post',{query:query.query,intent:intent.to_user})
     if (answer.to_user) {
       this.setData({
         isLoading: false
       })
-      this.data.botMessageTemplate.content=answer.to_user[0]
-        // 整点判断
-      // var arr = res.data.messages.reverse()
-      //     // 整点判断
-      // for (var i = 0; i < arr.length - 1; i = i + 1) {
-      //   if ((arr[i + 1].time - arr[i].time) > 60 || i === 0) {
-      //     arr[i].string_time = moment(arr[i].time * 1000).format('L');
-      //     arr[i].showTime = true;
-      //   }
-      // }
-        // 获取每行最大高度
-      this.getMaxLength(this.data.botMessageTemplate.content)
+      this.getMaxLength(answer.to_user[0])
       this.setData({
         top_value: this.data.max_length*2,
       });
-      this.data.testMessageDetail.data.push(this.data.botMessageTemplate)
+      var botTmp={self: 0,
+      showTime: 0,
+      string_time: '',
+      target_user: {
+        username: 'bot',
+        avatar: '../../images/bot.jpg'
+      },
+      content: answer.to_user[0]
+    }
+      this.data.testMessageDetail.data.push(botTmp)
+      var test=this.data.testMessageDetail.data
+      console.log(test)
       this.setData({
         testMessageDetail: this.data.testMessageDetail,
       });
-      console.log(this.data.testMessageDetail)
       return true
       // this.autoLoadMessage()
       }
+      
     else {
-      this.showToast("获取信息失败", "/images/icons/error.png")
-      return false
+      var guess="";
+      if(slot.slot){
+        guess+=",我认为你想说的有关:"+slot.slot
+      }
+      if(intent.to_user&&intent.to_user!=="意图未知"){
+        guess+=",我认为你的想法有关:"+intent.to_user
+      }
+      var botTmp={self: 0,
+        showTime: 0,
+        string_time: '',
+        target_user: {
+          username: 'bot',
+          avatar: '../../images/bot.jpg'
+        },
+        content: '抱歉，我不能理解你的话'+guess
+      }
+        this.data.testMessageDetail.data.push(botTmp)
+        this.setData({
+          testMessageDetail: this.data.testMessageDetail,
+        });
+      this.setData({isLoading: false})
+      return true
     }
   },
 
@@ -98,12 +101,12 @@ Page({
   //  * 生命周期函数--监听页面加载
   //  */
   onLoad: async function() {
-    moment.locale('en', {
-      longDateFormat: {
-        l: "MM-DD HH:mm",
-        L: "MM-DD HH:mm:ss"
-      }
-    });
+    // moment.locale('en', {
+    //   longDateFormat: {
+    //     l: "MM-DD HH:mm",
+    //     L: "MM-DD HH:mm:ss"
+    //   }
+    // });
     // 判断从哪里穿进来参数
     // var param={
     //   query:'你好，请问高血压的人能吃茄子和其他甜品么'
@@ -229,6 +232,9 @@ Page({
       reply_content: e.detail.value
     })
   },
+  submitVoice: function(e) {
+    
+  }
   // autoLoadMessage: async function(){
   //   var res = await server.request('GET', 'messages/' + this.data.session_id, {
   //     page: 1,

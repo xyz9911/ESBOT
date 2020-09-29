@@ -3,10 +3,10 @@
   
   <view class="objectDetail"  bindtap='onclickTask'>
     <view style="display:flex; margin-bottom:20rpx;">
-      <image mode="aspectFill" src="https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1601271690456&di=a67c71d7ee3a74bc4e5322f1693600d0&imgtype=0&src=http%3A%2F%2Fa2.att.hudong.com%2F86%2F10%2F01300000184180121920108394217.jpg" style="width: 120rpx; height: 120rpx;" />
+      <image mode="aspectFill" src="/images/robot.jpg" style="width: 350rpx; height: 200rpx;" />
       <view class="title_content">
-        <text style="font-size:36rpx; text-align: left; margin-top :10rpx;">蛤</text>
-        <text class="subtext" style="margin-top: 10rpx; text-align: left;">蛤</text>
+        <text style="font-size:36rpx; text-align: left; margin-top :10rpx;">基于知识图谱的医疗问答机器人</text>
+        <text class="subtext" style="margin-top: 10rpx; text-align: left;">医疗问答Bot</text>
       </view>
     </view>
   </view>
