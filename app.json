@@ -1,17 +1,5 @@
 {
-  "tabBar": {
-
-    "list": [{
-      "pagePath": "pages/index/index",
-      "text": "语音识别"
-    }, {
-      "pagePath": "pages/chat/chat",
-      "text": "聊天"
-    }]
-  },
   "pages": [
-    "pages/index/index",
-    "pages/logs/logs",
     "pages/chat/chat"
   ],
   "window": {
